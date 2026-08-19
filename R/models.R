@@ -171,3 +171,8 @@ arma11_forecast <- function(model, h, last_y) {
 aic_bic <- function(loglik, k, n) {
   c(AIC = -2 * loglik + 2 * k, BIC = -2 * loglik + k * log(n))
 }
+
+forecast_to_price <- function(fc, last_log, bias_correct = TRUE) {
+  adj <- if (bias_correct) 0.5 * fc$sigma2_l else 0
+  exp(last_log + cumsum(fc$mean) + adj)
+}
