@@ -1,0 +1,4 @@
+*.ipynb -text
+*.csv -text
+*.R text eol=lf
+*.md text eol=lf
