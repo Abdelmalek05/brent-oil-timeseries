@@ -7,7 +7,12 @@ source("R/diebold_mariano.R")
 BENCH    <- "Naive RW"
 HORIZONS <- c(1, 6, 12)
 
-errors <- read.csv("results/backtest_errors.csv", stringsAsFactors = FALSE)
+args   <- commandArgs(trailingOnly = TRUE)
+START  <- if (length(args) >= 1) as.integer(args[1]) else 60
+SUFFIX <- if (START == 60) "" else paste0("_start", START)
+
+errors <- read.csv(sprintf("results/backtest_errors%s.csv", SUFFIX),
+                   stringsAsFactors = FALSE)
 models <- setdiff(unique(errors$model), BENCH)
 
 out <- list()
@@ -44,9 +49,10 @@ for (hh in HORIZONS) {
 
 res <- do.call(rbind, out)
 res$dm_matches_pkg <- abs(res$dm_stat - res$dm_stat_pkg) < 1e-8
+res$start_origin   <- START
 
 dir.create("results", showWarnings = FALSE)
-write.csv(res, "results/dm_tests.csv", row.names = FALSE)
+write.csv(res, sprintf("results/dm_tests%s.csv", SUFFIX), row.names = FALSE)
 
 cat("Benchmark:", BENCH, "\n")
 cat("DM sign convention: positive means the benchmark has the LARGER loss,\n")
@@ -79,4 +85,4 @@ cat(sprintf("\nnaive RMSE by horizon: %s\n",
                             sqrt(mean(errors$error[errors$h == hh &
                                                    errors$model == BENCH]^2)))),
                   collapse = "   ")))
-cat("\nWritten: results/dm_tests.csv\n")
+cat(sprintf("\nWritten: results/dm_tests%s.csv\n", SUFFIX))

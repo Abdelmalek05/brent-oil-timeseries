@@ -7,7 +7,13 @@ d <- load_brent()
 y <- d$y
 N <- length(d$diff_y)
 
-errors <- read.csv("results/backtest_errors.csv", stringsAsFactors = FALSE)
+args   <- commandArgs(trailingOnly = TRUE)
+START  <- if (length(args) >= 1) as.integer(args[1]) else 60
+SUFFIX <- if (START == 60) "" else paste0("_start", START)
+cat(sprintf("Checking backtest with start origin %d\n\n", START))
+
+errors <- read.csv(sprintf("results/backtest_errors%s.csv", SUFFIX),
+                   stringsAsFactors = FALSE)
 
 failures <- 0
 check <- function(label, got, want, tol = 0) {
@@ -25,7 +31,7 @@ cat("=== coverage ===\n")
 check("models", n_models, 8)
 for (hh in c(1, 6, 12)) {
   n <- length(unique(errors$origin[errors$h == hh]))
-  check(sprintf("origins at h = %d", hh), n, N - hh - 59)
+  check(sprintf("origins at h = %d", hh), n, N - hh - START + 1)
 }
 check("missing forecasts", sum(is.na(errors$forecast)), 0)
 check("missing actuals",   sum(is.na(errors$actual)),   0)

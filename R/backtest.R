@@ -7,7 +7,9 @@ source("R/data.R")
 source("R/models.R")
 source("R/baselines.R")
 
-START_ORIGIN <- 60
+args         <- commandArgs(trailingOnly = TRUE)
+START_ORIGIN <- if (length(args) >= 1) as.integer(args[1]) else 60
+SUFFIX       <- if (START_ORIGIN == 60) "" else paste0("_start", START_ORIGIN)
 HORIZONS     <- c(1, 6, 12)
 HMAX         <- max(HORIZONS)
 
@@ -105,9 +107,10 @@ metrics <- do.call(rbind, lapply(HORIZONS, function(hh) {
 }))
 
 dir.create("results", showWarnings = FALSE)
-write.csv(errors,  "results/backtest_errors.csv", row.names = FALSE)
-write.csv(metrics, "results/metrics.csv",         row.names = FALSE)
-write.csv(fail_df, "results/fit_failures.csv",    row.names = FALSE)
+metrics$start_origin <- START_ORIGIN
+write.csv(errors,  sprintf("results/backtest_errors%s.csv", SUFFIX), row.names = FALSE)
+write.csv(metrics, sprintf("results/metrics%s.csv",         SUFFIX), row.names = FALSE)
+write.csv(fail_df, sprintf("results/fit_failures%s.csv",    SUFFIX), row.names = FALSE)
 
 for (hh in HORIZONS) {
   cat(sprintf("\n===== horizon h = %d months =====\n", hh))
@@ -116,4 +119,5 @@ for (hh in HORIZONS) {
   print(format(s, digits = 4), row.names = FALSE)
 }
 
-cat("\nWritten: results/backtest_errors.csv, results/metrics.csv, results/fit_failures.csv\n")
+cat(sprintf("\nWritten: results/backtest_errors%s.csv, results/metrics%s.csv, results/fit_failures%s.csv\n",
+            SUFFIX, SUFFIX, SUFFIX))
